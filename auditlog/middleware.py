@@ -50,6 +50,8 @@ class AuditlogMiddleware(MiddlewareMixin):
             from rest_framework_simplejwt.authentication import JWTAuthentication
             jwtAuth = JWTAuthentication()
             user = jwtAuth.authenticate(request)
+            if len(user) > 1:
+                user = user[0]
 
             set_actor = curry(self.set_actor, user=user, signal_duid=threadlocal.auditlog['signal_duid'])
             pre_save.connect(set_actor, sender=LogEntry, dispatch_uid=threadlocal.auditlog['signal_duid'], weak=False)
