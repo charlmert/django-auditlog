@@ -19,6 +19,13 @@ except ImportError:
 
 threadlocal = threading.local()
 
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 class AuditlogMiddleware(MiddlewareMixin):
     """
@@ -39,7 +46,7 @@ class AuditlogMiddleware(MiddlewareMixin):
 
         # In case of proxy, set 'original' address
         if request.META.get('HTTP_X_FORWARDED_FOR'):
-            threadlocal.auditlog['remote_addr'] = request.META.get('HTTP_X_FORWARDED_FOR').split(',')[0]
+            threadlocal.auditlog['remote_addr'] = get_client_ip(request)
 
         # Connect signal for automatic logging
         if hasattr(request, 'user') and is_authenticated(request.user):
